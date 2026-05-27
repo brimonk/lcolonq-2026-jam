@@ -41,7 +41,8 @@ let bug = { // most of these are set in setup
     dy: 0,
     w: 14,
     h: 8,
-    is_squashed: false
+    is_squashed: false,
+    is_off_screen: false
 };
 
 function clicked_thing(thing, mouse) { // ducks are neat for small things
@@ -49,6 +50,13 @@ function clicked_thing(thing, mouse) { // ducks are neat for small things
     const hy = thing.h / 2;
     return (thing.x - hx <= mouse.x && mouse.x <= thing.x + hx) &&
            (thing.y - hy <= mouse.y && mouse.y <= thing.y + hy);
+}
+
+function is_off_screen(thing) {
+    const hx = thing.w / 2;
+    const hy = thing.h / 2;
+    return thing.x - hx < 0 || thing.x + hx > canvas.width ||
+           thing.y - hy < 0 || thing.y + hy > canvas.height;
 }
 
 function vector_to(from, to) {
@@ -89,7 +97,9 @@ function update(dt) {
         return;
     }
 
-    if (clicked_thing(bug, mouse)) {
+    if (is_off_screen(bug)) {
+        bug.is_off_screen = true;
+    } else if (clicked_thing(bug, mouse)) {
         bug.is_squashed = true;
     }
 
@@ -127,10 +137,14 @@ function render(dt) {
     } else {
         render_bug();
 
-        if (bug.is_squashed) {
-            ctx.font = "32px Arial";
+        if (bug.is_off_screen) {
+            ctx.font = "20px Arial";
             ctx.fillStyle = "white";
-            ctx.fillText("!SQUASHED!", 16, 80);
+            ctx.fillText("BUG ESCAPED! (Lose)", 16, 80);
+        } else if (bug.is_squashed) {
+            ctx.font = "20px Arial";
+            ctx.fillStyle = "white";
+            ctx.fillText("SQUASHED! (Win)", 16, 80);
         }
     }
 
